@@ -1,5 +1,6 @@
 package com.schlumpyj.thetahero;
 
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -8,6 +9,18 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import io.reactivex.Single;
+import io.reactivex.SingleObserver;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.GET;
+import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,6 +39,35 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://api.tdameritrade.com")
+                .addConverterFactory(GsonConverterFactory.create())
+                        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                        .build();
+
+        // create an instance of the ApiService
+        ApiService apiService = retrofit.create(ApiService.class);
+        // make a request by calling the corresponding method
+        Single<OptionsData> data = apiService.getOptionsData("thetahero", "QCOM", "PUT", 2, true);
+        data.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new SingleObserver<OptionsData>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        // we'll come back to this in a moment
+                    }
+
+                    @Override
+                    public void onSuccess(OptionsData newData) {
+                        // data is ready and we can update the UI
+                    }
+                    @Override
+                    public void onError(Throwable e) {
+                        // oops, we best show some error message
+                    }
+                });
+
     }
 
     @Override
